@@ -133,6 +133,109 @@ void main() {
       expect(output, contains('theme: dark'));
       expect(output, isNot(contains('->')));
     });
+
+    test('exportJson returns list of maps', () {
+      logger.add(label: 'counter', newValue: '1', previousValue: '0');
+      logger.add(label: 'theme', newValue: 'dark');
+
+      final json = logger.exportJson();
+      expect(json.length, equals(2));
+      expect(json[0]['label'], equals('counter'));
+      expect(json[0]['newValue'], equals('1'));
+      expect(json[0]['previousValue'], equals('0'));
+      expect(json[0]['timestamp'], isA<String>());
+      expect(json[1]['label'], equals('theme'));
+      expect(json[1]['previousValue'], isNull);
+    });
+
+    test('exportCsv returns CSV with header and rows', () {
+      logger.add(label: 'counter', newValue: '1', previousValue: '0');
+      logger.add(label: 'theme', newValue: 'dark');
+
+      final csv = logger.exportCsv();
+      final lines = csv.trim().split('\n');
+      expect(lines[0], equals('timestamp,label,new_value,previous_value'));
+      expect(lines[1], contains('counter,1,0'));
+      expect(lines[2], contains('theme,dark,'));
+    });
+
+    test('exportCsv escapes values containing commas', () {
+      logger.add(label: 'data', newValue: 'a,b', previousValue: 'x,y');
+
+      final csv = logger.exportCsv();
+      final lines = csv.trim().split('\n');
+      expect(lines[1], contains('"a,b"'));
+      expect(lines[1], contains('"x,y"'));
+    });
+  });
+
+  group('PerformanceMetrics', () {
+    late PerformanceMetrics metrics;
+
+    setUp(() {
+      metrics = PerformanceMetrics();
+    });
+
+    test('starts with zero values', () {
+      expect(metrics.frameCount, equals(0));
+      expect(metrics.totalFrameTime, equals(Duration.zero));
+      expect(metrics.peakFrameTime, equals(Duration.zero));
+      expect(metrics.averageFrameTimeMs, equals(0));
+      expect(metrics.estimatedFps, equals(0));
+    });
+
+    test('recordFrame updates counts', () {
+      metrics.recordFrame(const Duration(milliseconds: 16));
+
+      expect(metrics.frameCount, equals(1));
+      expect(metrics.totalFrameTime, equals(const Duration(milliseconds: 16)));
+    });
+
+    test('averageFrameTimeMs calculation', () {
+      metrics.recordFrame(const Duration(milliseconds: 10));
+      metrics.recordFrame(const Duration(milliseconds: 20));
+
+      expect(metrics.averageFrameTimeMs, equals(15.0));
+    });
+
+    test('peakFrameTimeMs tracks max', () {
+      metrics.recordFrame(const Duration(milliseconds: 10));
+      metrics.recordFrame(const Duration(milliseconds: 30));
+      metrics.recordFrame(const Duration(milliseconds: 20));
+
+      expect(metrics.peakFrameTimeMs, equals(30.0));
+    });
+
+    test('estimatedFps calculation', () {
+      metrics.recordFrame(const Duration(milliseconds: 10));
+      metrics.recordFrame(const Duration(milliseconds: 10));
+
+      expect(metrics.estimatedFps, equals(100.0));
+    });
+
+    test('reset zeros everything', () {
+      metrics.recordFrame(const Duration(milliseconds: 16));
+      metrics.recordFrame(const Duration(milliseconds: 20));
+      metrics.reset();
+
+      expect(metrics.frameCount, equals(0));
+      expect(metrics.totalFrameTime, equals(Duration.zero));
+      expect(metrics.peakFrameTime, equals(Duration.zero));
+      expect(metrics.averageFrameTimeMs, equals(0));
+      expect(metrics.estimatedFps, equals(0));
+    });
+
+    test('toJson exports metrics as map', () {
+      metrics.recordFrame(const Duration(milliseconds: 10));
+      metrics.recordFrame(const Duration(milliseconds: 20));
+
+      final json = metrics.toJson();
+      expect(json['frameCount'], equals(2));
+      expect(json['averageFrameTimeMs'], equals(15.0));
+      expect(json['peakFrameTimeMs'], equals(20.0));
+      expect(json['estimatedFps'], closeTo(66.67, 0.01));
+      expect(json['totalFrameTimeMs'], equals(30.0));
+    });
   });
 
   group('RebuildTracker', () {
@@ -254,14 +357,24 @@ void main() {
       expect(inspector.isVisible, isFalse);
     });
 
-    test('reset clears logger and tracker', () {
+    test('trackFrame delegates to performance', () {
+      inspector.trackFrame(const Duration(milliseconds: 16));
+      inspector.trackFrame(const Duration(milliseconds: 20));
+
+      expect(inspector.performance.frameCount, equals(2));
+      expect(inspector.performance.peakFrameTimeMs, equals(20.0));
+    });
+
+    test('reset clears logger, tracker, and performance', () {
       inspector.logState('counter', '1');
       inspector.trackRebuild('MyWidget');
+      inspector.trackFrame(const Duration(milliseconds: 16));
       inspector.show();
       inspector.reset();
 
       expect(inspector.logger.count, equals(0));
       expect(inspector.tracker.total, equals(0));
+      expect(inspector.performance.frameCount, equals(0));
       expect(inspector.isVisible, isFalse);
     });
   });
@@ -346,6 +459,40 @@ void main() {
 
       await tester.tap(closeButton);
       expect(closed, isTrue);
+    });
+
+    testWidgets('shows Perf tab', (tester) async {
+      final logger = StateLogger();
+      final tracker = RebuildTracker();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: InspectorOverlay(
+              logger: logger,
+              tracker: tracker,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Perf'), findsOneWidget);
+    });
+  });
+
+  group('DraggableOverlay', () {
+    testWidgets('renders child', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DraggableOverlay(
+              child: Text('Debug Panel'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Debug Panel'), findsOneWidget);
     });
   });
 }

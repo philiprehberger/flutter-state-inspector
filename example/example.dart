@@ -35,6 +35,24 @@ void example() {
   final topRebuilders = inspector.tracker.topRebuilders(5);
   final totalRebuilds = inspector.tracker.total;
 
+  // Track frame durations for performance metrics
+  inspector.trackFrame(const Duration(milliseconds: 16));
+  inspector.trackFrame(const Duration(milliseconds: 18));
+  inspector.trackFrame(const Duration(milliseconds: 14));
+
+  // Query performance metrics
+  final fps = inspector.performance.estimatedFps;
+  final avgFrame = inspector.performance.averageFrameTimeMs;
+  final peakFrame = inspector.performance.peakFrameTimeMs;
+  final frames = inspector.performance.frameCount;
+  final perfJson = inspector.performance.toJson();
+
+  // Export state history as JSON
+  final jsonData = inspector.logger.exportJson();
+
+  // Export state history as CSV
+  final csvString = inspector.logger.exportCsv();
+
   // Reset all tracked data
   inspector.reset();
 
@@ -54,5 +72,16 @@ void example() {
   //         ),
   //       ),
   //   ],
+  // )
+  //
+  // Or use DraggableOverlay for a repositionable panel:
+  //
+  // DraggableOverlay(
+  //   initialPosition: const Offset(16, 100),
+  //   child: InspectorOverlay(
+  //     logger: StateInspector.instance.logger,
+  //     tracker: StateInspector.instance.tracker,
+  //     onClose: () => StateInspector.instance.hide(),
+  //   ),
   // )
 }

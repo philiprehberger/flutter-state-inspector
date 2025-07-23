@@ -1,7 +1,7 @@
 name: philiprehberger_state_inspector
 description: >-
   Debug overlay showing state changes, rebuild counts, and transition history
-version: 0.1.0
+version: 0.2.0
 homepage: https://philiprehberger.com/open-source-packages/dart/philiprehberger_state_inspector
 repository: https://github.com/philiprehberger/flutter-state-inspector
 issue_tracker: https://github.com/philiprehberger/flutter-state-inspector/issues

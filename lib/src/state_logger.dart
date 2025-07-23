@@ -59,4 +59,42 @@ class StateLogger {
     }
     return buffer.toString();
   }
+
+  /// Export all entries as a list of JSON-compatible maps.
+  ///
+  /// Each map contains `timestamp` (ISO8601), `label`, `newValue`,
+  /// and `previousValue` keys.
+  List<Map<String, dynamic>> exportJson() {
+    return _entries.map((e) => {
+      'timestamp': e.timestamp.toIso8601String(),
+      'label': e.label,
+      'newValue': e.newValue,
+      'previousValue': e.previousValue,
+    }).toList();
+  }
+
+  /// Export all entries as a CSV string.
+  ///
+  /// Includes a header row: `timestamp,label,new_value,previous_value`
+  /// followed by one row per entry. Values containing commas are
+  /// wrapped in double quotes.
+  String exportCsv() {
+    final buffer = StringBuffer();
+    buffer.writeln('timestamp,label,new_value,previous_value');
+    for (final entry in _entries) {
+      final timestamp = _csvEscape(entry.timestamp.toIso8601String());
+      final label = _csvEscape(entry.label);
+      final newValue = _csvEscape(entry.newValue);
+      final previousValue = _csvEscape(entry.previousValue ?? '');
+      buffer.writeln('$timestamp,$label,$newValue,$previousValue');
+    }
+    return buffer.toString();
+  }
+
+  String _csvEscape(String value) {
+    if (value.contains(',')) {
+      return '"$value"';
+    }
+    return value;
+  }
 }
