@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-02
+
+### Added
+- `PerformanceMetrics` class for frame timing and FPS tracking
+- `StateInspector.trackFrame()` and `performance` getter
+- `StateLogger.exportJson()` for JSON array export
+- `StateLogger.exportCsv()` for CSV string export
+- `DraggableOverlay` widget for repositionable debug panels
+- Performance tab in `InspectorOverlay` showing frame metrics
+
 ## [0.1.0] - 2026-04-01
 
 ### Added

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'state_entry.dart';
 import 'state_logger.dart';
 import 'rebuild_tracker.dart';
+import 'state_inspector.dart';
 
-/// Debug overlay widget showing state changes and rebuild counts.
+/// Debug overlay widget showing state changes, rebuild counts, and performance.
 ///
-/// Displays a compact panel with two tabs:
+/// Displays a compact panel with three tabs:
 /// - **State** lists recent state change entries from [StateLogger]
 /// - **Rebuilds** shows the top widget rebuild counts from [RebuildTracker]
+/// - **Perf** shows frame timing and FPS metrics from [PerformanceMetrics]
 class InspectorOverlay extends StatelessWidget {
   /// The state logger to read entries from.
   final StateLogger logger;
@@ -19,12 +21,16 @@ class InspectorOverlay extends StatelessWidget {
   /// Optional callback when the close button is pressed.
   final VoidCallback? onClose;
 
+  /// Optional position hint for parent layout.
+  final Offset? position;
+
   /// Create an inspector overlay.
   const InspectorOverlay({
     super.key,
     required this.logger,
     required this.tracker,
     this.onClose,
+    this.position,
   });
 
   @override
@@ -44,13 +50,14 @@ class InspectorOverlay extends StatelessWidget {
             _buildHeader(context),
             Expanded(
               child: DefaultTabController(
-                length: 2,
+                length: 3,
                 child: Column(
                   children: [
                     const TabBar(
                       tabs: [
                         Tab(text: 'State'),
                         Tab(text: 'Rebuilds'),
+                        Tab(text: 'Perf'),
                       ],
                     ),
                     Expanded(
@@ -58,6 +65,7 @@ class InspectorOverlay extends StatelessWidget {
                         children: [
                           _buildStateList(entries),
                           _buildRebuildList(topRebuilds),
+                          _buildPerfTab(),
                         ],
                       ),
                     ),
@@ -167,6 +175,51 @@ class InspectorOverlay extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPerfTab() {
+    final perf = StateInspector.instance.performance;
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPerfRow('Frames', '${perf.frameCount}'),
+          const SizedBox(height: 4),
+          _buildPerfRow(
+            'Avg Frame Time',
+            '${perf.averageFrameTimeMs.toStringAsFixed(2)} ms',
+          ),
+          const SizedBox(height: 4),
+          _buildPerfRow(
+            'Peak Frame Time',
+            '${perf.peakFrameTimeMs.toStringAsFixed(2)} ms',
+          ),
+          const SizedBox(height: 4),
+          _buildPerfRow(
+            'Estimated FPS',
+            perf.estimatedFps.toStringAsFixed(1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerfRow(String label, String value) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(color: Colors.cyanAccent, fontSize: 12),
+        ),
+      ],
     );
   }
 }

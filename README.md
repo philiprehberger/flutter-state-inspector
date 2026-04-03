@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_state_inspector: ^0.1.0
+  philiprehberger_state_inspector: ^0.2.0
 ```
 
 Then run:
@@ -63,6 +63,44 @@ Stack(
 )
 ```
 
+### Performance Tracking
+
+```dart
+// Record frame durations
+inspector.trackFrame(const Duration(milliseconds: 16));
+
+// Query metrics
+final fps = inspector.performance.estimatedFps;
+final avg = inspector.performance.averageFrameTimeMs;
+final peak = inspector.performance.peakFrameTimeMs;
+final frames = inspector.performance.frameCount;
+```
+
+### Exporting Data
+
+```dart
+// Export state history as JSON
+final jsonData = inspector.logger.exportJson();
+
+// Export state history as CSV
+final csvString = inspector.logger.exportCsv();
+```
+
+### Draggable Overlay
+
+Wrap the `InspectorOverlay` in a `DraggableOverlay` for repositionable panels:
+
+```dart
+DraggableOverlay(
+  initialPosition: const Offset(16, 100),
+  child: InspectorOverlay(
+    logger: StateInspector.instance.logger,
+    tracker: StateInspector.instance.tracker,
+    onClose: () => StateInspector.instance.hide(),
+  ),
+)
+```
+
 ### Querying State History
 
 ```dart
@@ -91,6 +129,8 @@ final totalRebuilds = inspector.tracker.total;
 | `StateInspector.hide()` | Hide the overlay |
 | `StateInspector.toggle()` | Toggle overlay visibility |
 | `StateInspector.reset()` | Clear all tracked data |
+| `StateInspector.trackFrame()` | Record a frame duration |
+| `StateInspector.performance` | Access performance metrics |
 | `StateLogger.add()` | Add a state entry |
 | `StateLogger.all` | All recorded entries |
 | `StateLogger.recent(n)` | Most recent n entries |
@@ -98,6 +138,16 @@ final totalRebuilds = inspector.tracker.total;
 | `StateLogger.clear()` | Remove all entries |
 | `StateLogger.count` | Total number of entries |
 | `StateLogger.export()` | Export as formatted string |
+| `StateLogger.exportJson()` | Export as JSON array |
+| `StateLogger.exportCsv()` | Export as CSV string |
+| `PerformanceMetrics.recordFrame()` | Record a frame duration |
+| `PerformanceMetrics.averageFrameTimeMs` | Average frame time in ms |
+| `PerformanceMetrics.peakFrameTimeMs` | Peak frame time in ms |
+| `PerformanceMetrics.estimatedFps` | Estimated FPS |
+| `PerformanceMetrics.frameCount` | Total frames tracked |
+| `PerformanceMetrics.reset()` | Reset all metrics |
+| `PerformanceMetrics.toJson()` | Export metrics as map |
+| `DraggableOverlay` | Draggable wrapper for debug panels |
 | `RebuildTracker.increment()` | Record a widget rebuild |
 | `RebuildTracker.count()` | Get rebuild count for a widget |
 | `RebuildTracker.topRebuilders(n)` | Top n most rebuilt widgets |
