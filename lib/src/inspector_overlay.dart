@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'state_entry.dart';
 import 'state_logger.dart';
 import 'rebuild_tracker.dart';
-import 'state_inspector.dart';
+import 'performance_metrics.dart';
 
 /// Debug overlay widget showing state changes, rebuild counts, and performance.
 ///
@@ -18,6 +18,9 @@ class InspectorOverlay extends StatelessWidget {
   /// The rebuild tracker to read counts from.
   final RebuildTracker tracker;
 
+  /// The performance metrics to display.
+  final PerformanceMetrics performance;
+
   /// Optional callback when the close button is pressed.
   final VoidCallback? onClose;
 
@@ -29,6 +32,7 @@ class InspectorOverlay extends StatelessWidget {
     super.key,
     required this.logger,
     required this.tracker,
+    required this.performance,
     this.onClose,
     this.position,
   });
@@ -179,7 +183,7 @@ class InspectorOverlay extends StatelessWidget {
   }
 
   Widget _buildPerfTab() {
-    final perf = StateInspector.instance.performance;
+    final perf = performance;
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Column(

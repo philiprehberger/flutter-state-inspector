@@ -377,12 +377,82 @@ void main() {
       expect(inspector.performance.frameCount, equals(0));
       expect(inspector.isVisible, isFalse);
     });
+
+    test('logState notifies listeners', () {
+      var notified = false;
+      inspector.addListener(() => notified = true);
+      inspector.logState('counter', '1');
+
+      expect(notified, isTrue);
+      inspector.removeListener(() {});
+    });
+
+    test('trackRebuild notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.trackRebuild('MyWidget');
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
+
+    test('trackFrame notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.trackFrame(const Duration(milliseconds: 16));
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
+
+    test('show notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.show();
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
+
+    test('hide notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.hide();
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
+
+    test('toggle notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.toggle();
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
+
+    test('reset notifies listeners', () {
+      var count = 0;
+      void listener() => count++;
+      inspector.addListener(listener);
+      inspector.reset();
+
+      expect(count, equals(1));
+      inspector.removeListener(listener);
+    });
   });
 
   group('InspectorOverlay', () {
     testWidgets('renders without errors', (tester) async {
       final logger = StateLogger();
       final tracker = RebuildTracker();
+      final performance = PerformanceMetrics();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -390,6 +460,7 @@ void main() {
             body: InspectorOverlay(
               logger: logger,
               tracker: tracker,
+              performance: performance,
             ),
           ),
         ),
@@ -403,6 +474,7 @@ void main() {
     testWidgets('shows empty state message', (tester) async {
       final logger = StateLogger();
       final tracker = RebuildTracker();
+      final performance = PerformanceMetrics();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -410,6 +482,7 @@ void main() {
             body: InspectorOverlay(
               logger: logger,
               tracker: tracker,
+              performance: performance,
             ),
           ),
         ),
@@ -422,6 +495,7 @@ void main() {
       final logger = StateLogger();
       logger.add(label: 'counter', newValue: '5');
       final tracker = RebuildTracker();
+      final performance = PerformanceMetrics();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -429,6 +503,7 @@ void main() {
             body: InspectorOverlay(
               logger: logger,
               tracker: tracker,
+              performance: performance,
             ),
           ),
         ),
@@ -441,6 +516,7 @@ void main() {
       var closed = false;
       final logger = StateLogger();
       final tracker = RebuildTracker();
+      final performance = PerformanceMetrics();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -448,6 +524,7 @@ void main() {
             body: InspectorOverlay(
               logger: logger,
               tracker: tracker,
+              performance: performance,
               onClose: () => closed = true,
             ),
           ),
@@ -464,6 +541,7 @@ void main() {
     testWidgets('shows Perf tab', (tester) async {
       final logger = StateLogger();
       final tracker = RebuildTracker();
+      final performance = PerformanceMetrics();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -471,6 +549,7 @@ void main() {
             body: InspectorOverlay(
               logger: logger,
               tracker: tracker,
+              performance: performance,
             ),
           ),
         ),

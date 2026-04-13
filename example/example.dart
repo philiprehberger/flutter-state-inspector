@@ -56,22 +56,25 @@ void example() {
   // Reset all tracked data
   inspector.reset();
 
-  // Use the overlay widget in your widget tree:
+  // Listen for changes (StateInspector extends ChangeNotifier):
   //
-  // Stack(
-  //   children: [
-  //     MyApp(),
-  //     if (StateInspector.instance.isVisible)
-  //       Positioned(
-  //         right: 16,
-  //         bottom: 16,
-  //         child: InspectorOverlay(
-  //           logger: StateInspector.instance.logger,
-  //           tracker: StateInspector.instance.tracker,
-  //           onClose: () => StateInspector.instance.hide(),
-  //         ),
-  //       ),
-  //   ],
+  // inspector.addListener(() {
+  //   print('State changed!');
+  // });
+  //
+  // Use ListenableBuilder for a reactive overlay:
+  //
+  // ListenableBuilder(
+  //   listenable: StateInspector.instance,
+  //   builder: (context, _) {
+  //     if (!StateInspector.instance.isVisible) return const SizedBox.shrink();
+  //     return InspectorOverlay(
+  //       logger: StateInspector.instance.logger,
+  //       tracker: StateInspector.instance.tracker,
+  //       performance: StateInspector.instance.performance,
+  //       onClose: () => StateInspector.instance.hide(),
+  //     );
+  //   },
   // )
   //
   // Or use DraggableOverlay for a repositionable panel:
@@ -81,6 +84,7 @@ void example() {
   //   child: InspectorOverlay(
   //     logger: StateInspector.instance.logger,
   //     tracker: StateInspector.instance.tracker,
+  //     performance: StateInspector.instance.performance,
   //     onClose: () => StateInspector.instance.hide(),
   //   ),
   // )

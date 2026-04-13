@@ -9,7 +9,7 @@ Debug overlay showing state changes, rebuild counts, and transition history
 ## Requirements
 
 - Dart >= 3.6
-- Flutter >= 3.24
+- Flutter >= 3.29
 
 ## Installation
 
@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_state_inspector: ^0.2.0
+  philiprehberger_state_inspector: ^0.3.0
 ```
 
 Then run:
@@ -43,23 +43,21 @@ inspector.trackRebuild('CounterWidget');
 
 ### Showing the Overlay
 
-Add the `InspectorOverlay` widget to your widget tree, typically in a `Stack`:
+`StateInspector` extends `ChangeNotifier`, so wrap the overlay in a
+`ListenableBuilder` for automatic updates:
 
 ```dart
-Stack(
-  children: [
-    MyApp(),
-    if (StateInspector.instance.isVisible)
-      Positioned(
-        right: 16,
-        bottom: 16,
-        child: InspectorOverlay(
-          logger: StateInspector.instance.logger,
-          tracker: StateInspector.instance.tracker,
-          onClose: () => StateInspector.instance.hide(),
-        ),
-      ),
-  ],
+ListenableBuilder(
+  listenable: StateInspector.instance,
+  builder: (context, _) {
+    if (!StateInspector.instance.isVisible) return const SizedBox.shrink();
+    return InspectorOverlay(
+      logger: StateInspector.instance.logger,
+      tracker: StateInspector.instance.tracker,
+      performance: StateInspector.instance.performance,
+      onClose: () => StateInspector.instance.hide(),
+    );
+  },
 )
 ```
 
@@ -96,6 +94,7 @@ DraggableOverlay(
   child: InspectorOverlay(
     logger: StateInspector.instance.logger,
     tracker: StateInspector.instance.tracker,
+    performance: StateInspector.instance.performance,
     onClose: () => StateInspector.instance.hide(),
   ),
 )
@@ -158,7 +157,7 @@ final totalRebuilds = inspector.tracker.total;
 
 ```bash
 flutter pub get
-flutter analyze
+flutter analyze --fatal-infos
 flutter test
 ```
 
