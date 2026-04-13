@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-12
+
+### Added
+- `StateInspector` now extends `ChangeNotifier` for reactive UI updates
+- `InspectorOverlay` accepts `performance` parameter instead of accessing singleton directly
+
+### Changed
+- `PerformanceMetrics` fields (`frameCount`, `totalFrameTime`, `peakFrameTime`) are now private with public getters
+- `StateInspector.isVisible` is now a getter backed by a private field
+
 ## [0.2.0] - 2026-04-02
 
 ### Added

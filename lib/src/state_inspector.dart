@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'performance_metrics.dart';
 import 'state_logger.dart';
 import 'rebuild_tracker.dart';
@@ -7,7 +9,11 @@ import 'rebuild_tracker.dart';
 /// Provides a singleton [instance] that combines [StateLogger] for
 /// recording state changes, [RebuildTracker] for counting widget rebuilds,
 /// and [PerformanceMetrics] for frame timing analysis.
-class StateInspector {
+///
+/// Extends [ChangeNotifier] so widgets can rebuild automatically when
+/// state changes. Wrap the overlay in a [ListenableBuilder] to get
+/// live updates.
+class StateInspector extends ChangeNotifier {
   /// Shared instance.
   static final StateInspector instance = StateInspector._();
 
@@ -21,9 +27,12 @@ class StateInspector {
   final PerformanceMetrics _performance = PerformanceMetrics();
 
   /// Whether the overlay is currently visible.
-  bool isVisible = false;
+  bool _isVisible = false;
 
   StateInspector._();
+
+  /// Whether the overlay is currently visible.
+  bool get isVisible => _isVisible;
 
   /// Performance metrics for frame timing analysis.
   PerformanceMetrics get performance => _performance;
@@ -31,32 +40,45 @@ class StateInspector {
   /// Record a state change.
   void logState(String label, String value, {String? previous}) {
     logger.add(label: label, newValue: value, previousValue: previous);
+    notifyListeners();
   }
 
   /// Record a widget rebuild.
   void trackRebuild(String widgetName) {
     tracker.increment(widgetName);
+    notifyListeners();
   }
 
   /// Record a frame duration for performance tracking.
   void trackFrame(Duration frameTime) {
     _performance.recordFrame(frameTime);
+    notifyListeners();
   }
 
   /// Show the overlay.
-  void show() => isVisible = true;
+  void show() {
+    _isVisible = true;
+    notifyListeners();
+  }
 
   /// Hide the overlay.
-  void hide() => isVisible = false;
+  void hide() {
+    _isVisible = false;
+    notifyListeners();
+  }
 
   /// Toggle visibility.
-  void toggle() => isVisible = !isVisible;
+  void toggle() {
+    _isVisible = !_isVisible;
+    notifyListeners();
+  }
 
   /// Reset all tracked data.
   void reset() {
     logger.clear();
     tracker.reset();
     _performance.reset();
-    isVisible = false;
+    _isVisible = false;
+    notifyListeners();
   }
 }
