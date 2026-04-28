@@ -167,6 +167,48 @@ void main() {
       expect(lines[1], contains('"a,b"'));
       expect(lines[1], contains('"x,y"'));
     });
+
+    test('diffSince returns empty for fresh logger', () {
+      expect(logger.diffSince(const Duration(seconds: 1)), isEmpty);
+    });
+
+    test('diffSince includes recent entries', () {
+      logger.add(label: 'a', newValue: '1');
+      logger.add(label: 'b', newValue: '2');
+
+      final recent = logger.diffSince(const Duration(seconds: 5));
+      expect(recent.length, equals(2));
+      expect(recent[0].label, equals('a'));
+      expect(recent[1].label, equals('b'));
+    });
+
+    test('diffSince filters out old entries', () {
+      // Inject an old entry directly using add then mutate... we can't mutate
+      // timestamps, so instead add via delayed insertion using a small window.
+      logger.add(label: 'old', newValue: '1');
+      // Wait briefly so the entry falls outside a tiny window.
+      final cutoff = DateTime.now();
+      // Spin until at least 50ms has passed.
+      while (DateTime.now().difference(cutoff) <
+          const Duration(milliseconds: 50)) {
+        // busy-wait
+      }
+      logger.add(label: 'new', newValue: '2');
+
+      final recent = logger.diffSince(const Duration(milliseconds: 25));
+      expect(recent.length, equals(1));
+      expect(recent.first.label, equals('new'));
+    });
+
+    test('diffSince preserves chronological order', () {
+      logger.add(label: 'first', newValue: '1');
+      logger.add(label: 'second', newValue: '2');
+      logger.add(label: 'third', newValue: '3');
+
+      final recent = logger.diffSince(const Duration(minutes: 1));
+      expect(recent.map((e) => e.label).toList(),
+          equals(['first', 'second', 'third']));
+    });
   });
 
   group('PerformanceMetrics', () {
@@ -235,6 +277,54 @@ void main() {
       expect(json['peakFrameTimeMs'], equals(20.0));
       expect(json['estimatedFps'], closeTo(66.67, 0.01));
       expect(json['totalFrameTimeMs'], equals(30.0));
+    });
+
+    test('measureMark returns positive duration between two marks', () {
+      metrics.recordMark('start');
+      // Busy-wait briefly to ensure non-zero elapsed time.
+      final waitFrom = DateTime.now();
+      while (DateTime.now().difference(waitFrom) <
+          const Duration(milliseconds: 5)) {
+        // busy-wait
+      }
+      metrics.recordMark('end');
+
+      final elapsed = metrics.measureMark('start', 'end');
+      expect(elapsed, greaterThan(Duration.zero));
+    });
+
+    test('measureMark returns zero when start mark is missing', () {
+      metrics.recordMark('end');
+      expect(
+        metrics.measureMark('missing', 'end'),
+        equals(Duration.zero),
+      );
+    });
+
+    test('measureMark returns zero when end mark is missing', () {
+      metrics.recordMark('start');
+      expect(
+        metrics.measureMark('start', 'missing'),
+        equals(Duration.zero),
+      );
+    });
+
+    test('measureMark returns zero when both marks are missing', () {
+      expect(
+        metrics.measureMark('a', 'b'),
+        equals(Duration.zero),
+      );
+    });
+
+    test('reset clears recorded marks', () {
+      metrics.recordMark('start');
+      metrics.recordMark('end');
+      metrics.reset();
+
+      expect(
+        metrics.measureMark('start', 'end'),
+        equals(Duration.zero),
+      );
     });
   });
 

@@ -37,6 +37,18 @@ class StateLogger {
     return _entries.where((e) => e.label == label).toList();
   }
 
+  /// Entries recorded within the most recent [window].
+  ///
+  /// Returns entries with `timestamp >= DateTime.now() - window`,
+  /// preserving chronological insertion order. Returns an empty list
+  /// when no entries fall inside the window.
+  List<StateEntry> diffSince(Duration window) {
+    final cutoff = DateTime.now().subtract(window);
+    return _entries
+        .where((e) => !e.timestamp.isBefore(cutoff))
+        .toList();
+  }
+
   /// Remove all entries.
   void clear() => _entries.clear();
 

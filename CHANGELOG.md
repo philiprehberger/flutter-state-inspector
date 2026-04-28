@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-28
+
+### Added
+- `PerformanceMetrics.recordMark()` records a named timestamp for custom timing
+- `PerformanceMetrics.measureMark()` returns the `Duration` between two recorded marks (or `Duration.zero` if either is missing)
+- `StateLogger.diffSince()` returns entries recorded within a given time window in chronological order
+
 ## [0.3.0] - 2026-04-12
 
 ### Added

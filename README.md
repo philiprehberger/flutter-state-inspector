@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_state_inspector: ^0.3.0
+  philiprehberger_state_inspector: ^0.4.0
 ```
 
 Then run:
@@ -72,6 +72,22 @@ final fps = inspector.performance.estimatedFps;
 final avg = inspector.performance.averageFrameTimeMs;
 final peak = inspector.performance.peakFrameTimeMs;
 final frames = inspector.performance.frameCount;
+```
+
+### Custom Markers
+
+Record named timestamps and measure the elapsed time between them:
+
+```dart
+inspector.performance.recordMark('fetch:start');
+await fetchData();
+inspector.performance.recordMark('fetch:end');
+
+final elapsed = inspector.performance.measureMark(
+  'fetch:start',
+  'fetch:end',
+);
+// Returns Duration.zero if either mark was never recorded.
 ```
 
 ### Exporting Data
@@ -139,7 +155,10 @@ final totalRebuilds = inspector.tracker.total;
 | `StateLogger.export()` | Export as formatted string |
 | `StateLogger.exportJson()` | Export as JSON array |
 | `StateLogger.exportCsv()` | Export as CSV string |
+| `StateLogger.diffSince(window)` | Entries recorded within the given `Duration` window |
 | `PerformanceMetrics.recordFrame()` | Record a frame duration |
+| `PerformanceMetrics.recordMark(name)` | Record a named timestamp marker |
+| `PerformanceMetrics.measureMark(start, end)` | Duration between two marks (zero if either missing) |
 | `PerformanceMetrics.averageFrameTimeMs` | Average frame time in ms |
 | `PerformanceMetrics.peakFrameTimeMs` | Peak frame time in ms |
 | `PerformanceMetrics.estimatedFps` | Estimated FPS |
